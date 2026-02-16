@@ -108,7 +108,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Main Menu Screen */
+        /* Main Header */
         .main-header {
             text-align: center;
             color: white;
@@ -307,7 +307,7 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background: #e85a2a;
             transform: translateY(-2px);
         }
@@ -326,10 +326,81 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
-        /* Quiz Screen Styles */
+        /* Progress Screen */
+        .progress-screen-header {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .progress-screen-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .progress-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .progress-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .progress-card h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .module-progress-item {
+            padding: 1.5rem;
+            background: #f5f5f5;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .module-progress-item h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar-small {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar-small-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, var(--secondary) 100%);
+        }
+
+        .achievement-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+
+        /* Quiz Styles */
         .quiz-container {
             max-width: 900px;
             margin: 0 auto;
@@ -537,6 +608,16 @@
             border-color: var(--accent);
         }
 
+        .input-field.correct {
+            border-color: var(--success);
+            background: #e8f5e9;
+        }
+
+        .input-field.incorrect {
+            border-color: var(--error);
+            background: #ffebee;
+        }
+
         .feedback {
             padding: 1.5rem;
             border-radius: 15px;
@@ -619,6 +700,10 @@
             .quiz-card {
                 padding: 2rem 1.5rem;
             }
+
+            .progress-cards {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -628,7 +713,7 @@
         <div class="logo" onclick="showScreen('main-menu')">Learn Your Way</div>
         <div class="nav-menu">
             <button class="nav-btn" onclick="showScreen('main-menu')">📚 Все модули</button>
-            <button class="nav-btn" onclick="showProgress()">📊 Прогресс</button>
+            <button class="nav-btn" onclick="showScreen('progress-screen')">📊 Прогресс</button>
             <button class="nav-btn" onclick="resetProgress()">🔄 Сброс</button>
         </div>
     </div>
@@ -663,8 +748,32 @@
                 </div>
             </div>
 
-            <div class="modules-grid" id="modulesGrid">
-                <!-- Modules will be dynamically inserted -->
+            <div class="modules-grid" id="modulesGrid"></div>
+        </div>
+
+        <!-- Progress Screen -->
+        <div class="screen" id="progress-screen">
+            <div class="progress-screen-header">
+                <h2>📊 Детальный прогресс</h2>
+                <p style="color: #666; font-size: 1.1rem;">Отслеживай свои достижения</p>
+            </div>
+
+            <div class="progress-cards">
+                <div class="progress-card">
+                    <h3>🎯 Твои достижения</h3>
+                    <div id="achievementsList"></div>
+                </div>
+
+                <div class="progress-card">
+                    <h3>📈 Статистика по модулям</h3>
+                    <div id="moduleStatsList"></div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-primary" onclick="showScreen('main-menu')" style="max-width: 300px;">
+                    ← Вернуться к модулям
+                </button>
             </div>
         </div>
 
@@ -705,13 +814,12 @@
                     </div>
                 </div>
 
-                <div class="quiz-card" id="quizCard">
-                    <!-- Questions will be dynamically inserted -->
-                </div>
+                <div class="quiz-card" id="quizCard"></div>
             </div>
         </div>
     </div>
 
+    <script src="quiz-data.js"></script>
     <script>
         // Module Data
         const modules = [
@@ -777,89 +885,942 @@
             }
         ];
 
-        // Quiz Data for Module 1
-        const quizDataModule1 = [
-            {
-                id: 1,
-                type: 'multiple-choice',
-                difficulty: 'easy',
-                question: 'Как ты обычно общаешься с друзьями?',
-                context: 'Представь: твой друг хочет узнать, как лучше с тобой связаться.',
-                lifeExample: 'Например, ты можешь сказать: Мне удобнее писать в мессенджере, чем звонить',
-                options: [
-                    { text: 'I usually text on WhatsApp', correct: true },
-                    { text: 'I usually texting on WhatsApp', correct: false },
-                    { text: 'I am usually text on WhatsApp', correct: false },
-                    { text: 'I usually to text on WhatsApp', correct: false }
-                ],
-                explanation: 'После usually используется обычная форма глагола (V1): I usually + VERB. НЕ texting, НЕ to text.',
-                hint: 'Вспомни правило: usually + простой глагол (без -ing, без to)',
-                points: 10
-            },
-            {
-                id: 2,
-                type: 'multiple-choice',
-                difficulty: 'easy',
-                question: 'Выбери правильный способ описания коммуникации:',
-                context: 'Тебе нужно объяснить, почему ты предпочитаешь один способ связи другому.',
-                lifeExample: 'Как в жизни: Я предпочитаю звонить, потому что это быстрее',
-                options: [
-                    { text: 'I&apos;d rather call than text', correct: true },
-                    { text: 'I&apos;d rather to call than text', correct: false },
-                    { text: 'I&apos;d rather calling than texting', correct: false },
-                    { text: 'I rather call than text', correct: false }
-                ],
-                explanation: 'Конструкция would rather используется так: would rather + V1 + than + V1. Обе формы глагола простые!',
-                hint: 'Would rather + простой глагол (без to, без -ing)',
-                points: 10
-            },
-            {
-                id: 3,
-                type: 'input',
-                difficulty: 'medium',
-                question: 'Заполни пропуск правильным phrasal verb:',
-                context: 'The meeting was _____ because the manager was sick.',
-                lifeExample: 'Представь: встречу отменили из-за болезни начальника',
-                correctAnswers: ['called off', 'cancelled'],
-                explanation: 'Phrasal verb call off означает отменить (встречу, мероприятие). Синоним: cancel.',
-                hint: 'Подумай о фразовом глаголе со словом call (отменить)',
-                points: 15
-            },
-            {
-                id: 4,
-                type: 'multiple-choice',
-                difficulty: 'medium',
-                question: 'Какой артикль нужен в предложении?',
-                context: 'I saw ___ cat in the garden. ___ cat was black.',
-                lifeExample: 'Первый раз говоришь о чём-то → a/an. Второй раз (уже известно) → the',
-                options: [
-                    { text: 'a / The', correct: true },
-                    { text: 'the / The', correct: false },
-                    { text: 'a / A', correct: false },
-                    { text: '- / The', correct: false }
-                ],
-                explanation: 'Правило артиклей: первое упоминание → a или an (какой-то кот), повторное упоминание → the (тот самый кот).',
-                hint: 'Первый раз = новая информация (a/an), второй раз = уже знакомая (the)',
-                points: 15
-            },
-            {
-                id: 5,
-                type: 'multiple-choice',
-                difficulty: 'easy',
-                question: 'Как сказать Я не согласен вежливо?',
-                context: 'Твой коллега предложил идею, но ты не согласен. Как ответить вежливо?',
-                lifeExample: 'В работе важно не соглашаться культурно',
-                options: [
-                    { text: 'I don&apos;t think I agree', correct: true },
-                    { text: 'You are wrong', correct: false },
-                    { text: 'That&apos;s stupid', correct: false },
-                    { text: 'No way', correct: false }
-                ],
-                explanation: 'Вежливая форма несогласия: I don&apos;t think I agree. Фраза You are wrong звучит грубо!',
-                hint: 'Ищи самый вежливый вариант с I think',
-                points: 10
-            }
-        ];
+        // Quiz Data for all modules (inline for now, can be external file)
+        const quizData = {
+            1: [ // Module 1: Crossing Barriers
+                {
+                    id: 1,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'Как ты обычно общаешься с друзьями?',
+                    context: 'Представь: твой друг хочет узнать, как лучше с тобой связаться.',
+                    lifeExample: 'Например, ты можешь сказать: Мне удобнее писать в мессенджере',
+                    options: [
+                        { text: 'I usually text on WhatsApp', correct: true },
+                        { text: 'I usually texting on WhatsApp', correct: false },
+                        { text: 'I am usually text on WhatsApp', correct: false },
+                        { text: 'I usually to text on WhatsApp', correct: false }
+                    ],
+                    explanation: 'После usually используется обычная форма глагола (V1): I usually + VERB.',
+                    hint: 'Вспомни правило: usually + простой глагол',
+                    points: 10
+                },
+                {
+                    id: 2,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'Выбери правильное выражение предпочтения:',
+                    context: 'Тебе нужно сказать, что ты предпочитаешь звонить, а не писать',
+                    lifeExample: 'Я предпочитаю звонить, потому что это быстрее',
+                    options: [
+                        { text: 'I would rather call than text', correct: true },
+                        { text: 'I would rather to call than text', correct: false },
+                        { text: 'I would rather calling than texting', correct: false },
+                        { text: 'I rather call than text', correct: false }
+                    ],
+                    explanation: 'would rather + V1 + than + V1. Обе формы глагола простые!',
+                    hint: 'Would rather + простой глагол (без to, без -ing)',
+                    points: 10
+                },
+                {
+                    id: 3,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'Заполни пропуск phrasal verb:',
+                    context: 'The meeting was _____ because the manager was sick.',
+                    lifeExample: 'Встречу отменили из-за болезни начальника',
+                    correctAnswers: ['called off', 'cancelled'],
+                    explanation: 'Phrasal verb call off означает отменить.',
+                    hint: 'Фразовый глагол со словом call (отменить)',
+                    points: 15
+                },
+                {
+                    id: 4,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'Какой артикль нужен?',
+                    context: 'I saw ___ cat. ___ cat was black.',
+                    lifeExample: 'Первый раз упоминаешь → a/an, второй раз → the',
+                    options: [
+                        { text: 'a / The', correct: true },
+                        { text: 'the / The', correct: false },
+                        { text: 'a / A', correct: false },
+                        { text: '- / The', correct: false }
+                    ],
+                    explanation: 'Первое упоминание → a/an, повторное → the',
+                    hint: 'Новая информация (a/an), уже знакомая (the)',
+                    points: 15
+                },
+                {
+                    id: 5,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'Как вежливо не согласиться?',
+                    context: 'Коллега предложил идею, но ты не согласен',
+                    lifeExample: 'Нужно ответить вежливо',
+                    options: [
+                        { text: 'I do not think I agree', correct: true },
+                        { text: 'You are wrong', correct: false },
+                        { text: 'That is stupid', correct: false },
+                        { text: 'No way', correct: false }
+                    ],
+                    explanation: 'I do not think I agree - вежливая форма',
+                    hint: 'Ищи вежливый вариант с I think',
+                    points: 10
+                },
+                {
+                    id: 6,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'Заполни предлог:',
+                    context: 'I want to bump ___ my old friend.',
+                    lifeExample: 'Случайно встретить кого-то',
+                    correctAnswers: ['into'],
+                    explanation: 'bump into = случайно встретить',
+                    hint: 'Предлог столкновения',
+                    points: 20
+                },
+                {
+                    id: 7,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'What does mother tongue mean?',
+                    context: 'My mother tongue is Russian.',
+                    lifeExample: 'Язык, на котором говоришь с детства',
+                    options: [
+                        { text: 'Native language', correct: true },
+                        { text: 'Second language', correct: false },
+                        { text: 'Foreign language', correct: false },
+                        { text: 'Difficult language', correct: false }
+                    ],
+                    explanation: 'mother tongue = native language = родной язык',
+                    hint: 'Это про РОДНОЙ язык',
+                    points: 15
+                },
+                {
+                    id: 8,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'Выбери правильный глагол:',
+                    context: 'Can you ___ me through to the manager?',
+                    lifeExample: 'Звонишь в компанию, просишь соединить',
+                    options: [
+                        { text: 'put', correct: true },
+                        { text: 'make', correct: false },
+                        { text: 'take', correct: false },
+                        { text: 'give', correct: false }
+                    ],
+                    explanation: 'put through = соединить по телефону',
+                    hint: 'Какой глагол для соединения?',
+                    points: 15
+                },
+                {
+                    id: 9,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'Как сказать держать в курсе?',
+                    context: 'Please ___ me updated.',
+                    lifeExample: 'Просишь информировать тебя',
+                    options: [
+                        { text: 'keep', correct: true },
+                        { text: 'make', correct: false },
+                        { text: 'do', correct: false },
+                        { text: 'have', correct: false }
+                    ],
+                    explanation: 'keep someone updated = держать в курсе',
+                    hint: 'Глагол поддерживать',
+                    points: 10
+                },
+                {
+                    id: 10,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'This food is ___ hot.',
+                    context: 'Слишком горячо, чтобы есть',
+                    lifeExample: 'Блюдо невозможно есть',
+                    options: [
+                        { text: 'too', correct: true },
+                        { text: 'enough', correct: false },
+                        { text: 'very', correct: false },
+                        { text: 'so', correct: false }
+                    ],
+                    explanation: 'TOO = слишком (избыточно)',
+                    hint: 'Слово означает СЛИШКОМ',
+                    points: 15
+                },
+                {
+                    id: 11,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'Переведи: Я не в курсе технологий',
+                    context: 'I am out of _____ with technology',
+                    lifeExample: 'Отстал от современных технологий',
+                    correctAnswers: ['touch'],
+                    explanation: 'out of touch = не в курсе',
+                    hint: 'Touch = контакт',
+                    points: 15
+                },
+                {
+                    id: 12,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'Выбери правильный порядок слов:',
+                    context: 'Making a suggestion politely',
+                    lifeExample: 'Вежливое предложение',
+                    options: [
+                        { text: 'Why do not you try calling her?', correct: true },
+                        { text: 'Why you do not try calling her?', correct: false },
+                        { text: 'Why not you try calling her?', correct: false },
+                        { text: 'You why not try calling her?', correct: false }
+                    ],
+                    explanation: 'Why do not you + verb = вежливое предложение',
+                    hint: 'Начинается с Why',
+                    points: 20
+                },
+                {
+                    id: 13,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'Заполни: I have not been ___ touch',
+                    context: 'Потерял связь с другом',
+                    lifeExample: 'Давно не общались',
+                    correctAnswers: ['in'],
+                    explanation: 'in touch = на связи, в контакте',
+                    hint: 'Предлог нахождения',
+                    points: 20
+                },
+                {
+                    id: 14,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'What does get across mean?',
+                    context: 'I could not get my point across.',
+                    lifeExample: 'Не смог донести мысль',
+                    options: [
+                        { text: 'Communicate successfully', correct: true },
+                        { text: 'Cross the road', correct: false },
+                        { text: 'Get angry', correct: false },
+                        { text: 'Arrive somewhere', correct: false }
+                    ],
+                    explanation: 'get across = донести мысль, объяснить',
+                    hint: 'Про коммуникацию',
+                    points: 15
+                },
+                {
+                    id: 15,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'I prefer ___ to ___',
+                    context: 'I prefer emailing to calling',
+                    lifeExample: 'Выражение предпочтения',
+                    options: [
+                        { text: 'emailing / calling', correct: true },
+                        { text: 'to email / to call', correct: false },
+                        { text: 'email / call', correct: false },
+                        { text: 'emailing / call', correct: false }
+                    ],
+                    explanation: 'prefer + V-ing + to + V-ing',
+                    hint: 'Обе формы с -ing',
+                    points: 20
+                }
+            ],
+            2: [ // Module 2: Material World
+                {
+                    id: 1,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'I have ___ this shirt.',
+                    context: 'Уже купил рубашку',
+                    lifeExample: 'Покупка в магазине',
+                    options: [
+                        { text: 'bought', correct: true },
+                        { text: 'buyed', correct: false },
+                        { text: 'buy', correct: false },
+                        { text: 'buying', correct: false }
+                    ],
+                    explanation: 'Неправильный глагол: buy-bought-bought',
+                    hint: 'Вторая форма buy',
+                    points: 10
+                },
+                {
+                    id: 2,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'This dress is ___',
+                    context: 'Очень красивое платье',
+                    lifeExample: 'Описываешь покупку',
+                    options: [
+                        { text: 'gorgeous', correct: true },
+                        { text: 'gorgeously', correct: false },
+                        { text: 'gorgeousness', correct: false },
+                        { text: 'gorge', correct: false }
+                    ],
+                    explanation: 'gorgeous = великолепный (adjective)',
+                    hint: 'Нужно прилагательное',
+                    points: 10
+                },
+                {
+                    id: 3,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'Заполни: I have just ___ shopping',
+                    context: 'Только что вернулся из магазина',
+                    lifeExample: 'Недавно завершенное действие',
+                    correctAnswers: ['been'],
+                    explanation: 'have been shopping = ходил за покупками',
+                    hint: 'Present Perfect + been',
+                    points: 15
+                },
+                {
+                    id: 4,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'This bag is ___ than that one',
+                    context: 'Сравниваешь две сумки',
+                    lifeExample: 'В магазине выбираешь',
+                    options: [
+                        { text: 'more expensive', correct: true },
+                        { text: 'expensiver', correct: false },
+                        { text: 'most expensive', correct: false },
+                        { text: 'expensive', correct: false }
+                    ],
+                    explanation: 'Длинные прилагательные: more + adjective',
+                    hint: 'More для длинных слов',
+                    points: 15
+                },
+                {
+                    id: 5,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'What is the opposite of cheap?',
+                    context: 'Противоположность слова дешевый',
+                    lifeExample: 'Описание цен',
+                    options: [
+                        { text: 'expensive', correct: true },
+                        { text: 'big', correct: false },
+                        { text: 'small', correct: false },
+                        { text: 'bad', correct: false }
+                    ],
+                    explanation: 'cheap ↔ expensive (дешевый ↔ дорогой)',
+                    hint: 'Про цену',
+                    points: 10
+                },
+                {
+                    id: 6,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'Have you ___ been to Paris?',
+                    context: 'Спрашиваешь о прошлом опыте',
+                    lifeExample: 'Был ли когда-нибудь в Париже?',
+                    correctAnswers: ['ever'],
+                    explanation: 'Have you ever = ты когда-нибудь (опыт)',
+                    hint: 'Слово для вопросов об опыте',
+                    points: 20
+                },
+                {
+                    id: 7,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'I have known him ___ 5 years',
+                    context: 'Знаком с ним в течение 5 лет',
+                    lifeExample: 'Длительность знакомства',
+                    options: [
+                        { text: 'for', correct: true },
+                        { text: 'since', correct: false },
+                        { text: 'during', correct: false },
+                        { text: 'from', correct: false }
+                    ],
+                    explanation: 'for + период времени (5 years)',
+                    hint: 'Используется с периодом',
+                    points: 15
+                },
+                {
+                    id: 8,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'I have lived here ___ 2020',
+                    context: 'Живу здесь с 2020 года',
+                    lifeExample: 'Момент начала',
+                    options: [
+                        { text: 'since', correct: true },
+                        { text: 'for', correct: false },
+                        { text: 'from', correct: false },
+                        { text: 'at', correct: false }
+                    ],
+                    explanation: 'since + момент времени (2020)',
+                    hint: 'Используется с моментом',
+                    points: 15
+                },
+                {
+                    id: 9,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'This is the ___ expensive car',
+                    context: 'Самая дорогая машина (превосходная степень)',
+                    lifeExample: 'Самый-самый',
+                    correctAnswers: ['most'],
+                    explanation: 'the most expensive = самый дорогой',
+                    hint: 'Превосходная степень длинных прилагательных',
+                    points: 15
+                },
+                {
+                    id: 10,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'She has ___ finished her work',
+                    context: 'Только что закончила',
+                    lifeExample: 'Недавно завершенное',
+                    options: [
+                        { text: 'just', correct: true },
+                        { text: 'yet', correct: false },
+                        { text: 'already', correct: false },
+                        { text: 'ever', correct: false }
+                    ],
+                    explanation: 'just = только что (с утверждением)',
+                    hint: 'Только что',
+                    points: 20
+                },
+                {
+                    id: 11,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'Have you finished ___?',
+                    context: 'Уже закончил? (вопрос)',
+                    lifeExample: 'Вопрос о завершении',
+                    options: [
+                        { text: 'yet', correct: true },
+                        { text: 'just', correct: false },
+                        { text: 'already', correct: false },
+                        { text: 'still', correct: false }
+                    ],
+                    explanation: 'yet используется в вопросах и отрицаниях',
+                    hint: 'В вопросах и отрицаниях',
+                    points: 15
+                },
+                {
+                    id: 12,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'She is ___ intelligent ___ her sister',
+                    context: 'Такая же умная, как сестра',
+                    lifeExample: 'Равенство в сравнении',
+                    correctAnswers: ['as as', 'as...as'],
+                    explanation: 'as + adjective + as = такой же...как',
+                    hint: 'Два одинаковых слова',
+                    points: 20
+                },
+                {
+                    id: 13,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'The ___ you practice, the ___ you get',
+                    context: 'Чем больше практики, тем лучше результат',
+                    lifeExample: 'Зависимость',
+                    options: [
+                        { text: 'more / better', correct: true },
+                        { text: 'much / good', correct: false },
+                        { text: 'many / well', correct: false },
+                        { text: 'more / good', correct: false }
+                    ],
+                    explanation: 'The more...the better (чем больше...тем лучше)',
+                    hint: 'The + сравнительная степень',
+                    points: 20
+                },
+                {
+                    id: 14,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'This sweater is made ___ wool',
+                    context: 'Из чего сделан свитер',
+                    lifeExample: 'Материал изделия',
+                    options: [
+                        { text: 'of', correct: true },
+                        { text: 'from', correct: false },
+                        { text: 'by', correct: false },
+                        { text: 'with', correct: false }
+                    ],
+                    explanation: 'made of = сделан из (материал виден)',
+                    hint: 'Предлог для видимого материала',
+                    points: 15
+                },
+                {
+                    id: 15,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'I have never ___ such a beautiful place',
+                    context: 'Никогда не видел такого красивого места',
+                    lifeExample: 'Новый опыт',
+                    correctAnswers: ['seen'],
+                    explanation: 'have never seen = никогда не видел (опыт)',
+                    hint: 'Past Participle от see',
+                    points: 20
+                }
+            ],
+            3: [ // Module 3: Getting Around
+                {
+                    id: 1,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'Yesterday I ___ to London',
+                    context: 'Поехал вчера в Лондон',
+                    lifeExample: 'Завершенное действие в прошлом',
+                    options: [
+                        { text: 'went', correct: true },
+                        { text: 'go', correct: false },
+                        { text: 'have gone', correct: false },
+                        { text: 'was going', correct: false }
+                    ],
+                    explanation: 'Past Simple для завершенного действия',
+                    hint: 'Вторая форма go',
+                    points: 10
+                },
+                {
+                    id: 2,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'I ___ in Paris when I was a child',
+                    context: 'Жил в Париже в детстве (уже не живу)',
+                    lifeExample: 'Прошлая привычка',
+                    options: [
+                        { text: 'used to live', correct: true },
+                        { text: 'use to live', correct: false },
+                        { text: 'am used to live', correct: false },
+                        { text: 'used living', correct: false }
+                    ],
+                    explanation: 'used to + V1 = раньше делал (теперь нет)',
+                    hint: 'Конструкция для прошлых привычек',
+                    points: 15
+                },
+                {
+                    id: 3,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'While I ___ (watch) TV, she called',
+                    context: 'Смотрел ТВ, когда она позвонила',
+                    lifeExample: 'Длительное + короткое действие',
+                    correctAnswers: ['was watching'],
+                    explanation: 'Past Continuous для длительного действия',
+                    hint: 'was/were + V-ing',
+                    points: 15
+                },
+                {
+                    id: 4,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'When I arrived, they ___ already ___',
+                    context: 'Они уже ушли, когда я пришел',
+                    lifeExample: 'Действие до другого в прошлом',
+                    options: [
+                        { text: 'had / left', correct: true },
+                        { text: 'have / left', correct: false },
+                        { text: 'had / leave', correct: false },
+                        { text: 'were / leaving', correct: false }
+                    ],
+                    explanation: 'Past Perfect для действия ДО другого',
+                    hint: 'had + V3',
+                    points: 20
+                },
+                {
+                    id: 5,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'How do you get ___ work?',
+                    context: 'Как ты добираешься на работу?',
+                    lifeExample: 'Вопрос о транспорте',
+                    options: [
+                        { text: 'to', correct: true },
+                        { text: 'at', correct: false },
+                        { text: 'in', correct: false },
+                        { text: 'on', correct: false }
+                    ],
+                    explanation: 'get to = добраться до',
+                    hint: 'Предлог направления',
+                    points: 10
+                },
+                {
+                    id: 6,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'I ___ (travel) a lot last year',
+                    context: 'Много путешествовал в прошлом году',
+                    lifeExample: 'Завершенное действие в прошлом',
+                    correctAnswers: ['travelled', 'traveled'],
+                    explanation: 'Past Simple для законченного периода',
+                    hint: 'Правильный глагол, вторая форма',
+                    points: 15
+                },
+                {
+                    id: 7,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'We ___ visit our grandparents every summer',
+                    context: 'Раньше навещали каждое лето (теперь нет)',
+                    lifeExample: 'Повторяющееся действие в прошлом',
+                    options: [
+                        { text: 'would', correct: true },
+                        { text: 'will', correct: false },
+                        { text: 'are', correct: false },
+                        { text: 'did', correct: false }
+                    ],
+                    explanation: 'would + V1 = раньше делал регулярно',
+                    hint: 'Для повторяющихся действий в прошлом',
+                    points: 15
+                },
+                {
+                    id: 8,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'The plane ___ off at 6 pm',
+                    context: 'Самолет взлетает в 6',
+                    lifeExample: 'Расписание',
+                    options: [
+                        { text: 'takes', correct: true },
+                        { text: 'take', correct: false },
+                        { text: 'is taking', correct: false },
+                        { text: 'took', correct: false }
+                    ],
+                    explanation: 'take off = взлетать',
+                    hint: 'Present Simple для расписания',
+                    points: 10
+                },
+                {
+                    id: 9,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'By the time we arrived, the show ___ (start)',
+                    context: 'Шоу уже началось, когда мы приехали',
+                    lifeExample: 'Действие до момента в прошлом',
+                    correctAnswers: ['had started'],
+                    explanation: 'Past Perfect: had + V3',
+                    hint: 'had + третья форма',
+                    points: 20
+                },
+                {
+                    id: 10,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'This city is very ___ to navigate',
+                    context: 'По городу легко ориентироваться',
+                    lifeExample: 'Описание города',
+                    options: [
+                        { text: 'easy', correct: true },
+                        { text: 'easily', correct: false },
+                        { text: 'easier', correct: false },
+                        { text: 'easiest', correct: false }
+                    ],
+                    explanation: 'После be используем прилагательное',
+                    hint: 'Нужно прилагательное',
+                    points: 15
+                },
+                {
+                    id: 11,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'I wish I ___ speak Spanish',
+                    context: 'Жаль, что не говорю по-испански',
+                    lifeExample: 'Сожаление о настоящем',
+                    options: [
+                        { text: 'could', correct: true },
+                        { text: 'can', correct: false },
+                        { text: 'will', correct: false },
+                        { text: 'would', correct: false }
+                    ],
+                    explanation: 'I wish + Past для сожаления о настоящем',
+                    hint: 'Past форма can',
+                    points: 20
+                },
+                {
+                    id: 12,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'Get ___ the bus at the next stop',
+                    context: 'Выйти из автобуса',
+                    lifeExample: 'Покинуть транспорт',
+                    correctAnswers: ['off'],
+                    explanation: 'get off = выйти из транспорта',
+                    hint: 'Противоположность get on',
+                    points: 15
+                },
+                {
+                    id: 13,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'The hotel is located ___ the city center',
+                    context: 'Отель находится в центре',
+                    lifeExample: 'Местоположение',
+                    options: [
+                        { text: 'in', correct: true },
+                        { text: 'on', correct: false },
+                        { text: 'at', correct: false },
+                        { text: 'by', correct: false }
+                    ],
+                    explanation: 'in the city center = в центре города',
+                    hint: 'Предлог места для больших территорий',
+                    points: 15
+                },
+                {
+                    id: 14,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'If I had known, I ___ (come) earlier',
+                    context: 'Если бы я знал, пришел бы раньше',
+                    lifeExample: 'Сожаление о прошлом',
+                    correctAnswers: ['would have come', 'would\'ve come'],
+                    explanation: 'Third Conditional: would have + V3',
+                    hint: 'would have + третья форма',
+                    points: 20
+                },
+                {
+                    id: 15,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'I ___ to driving on the left',
+                    context: 'Привык ездить слева (уже не странно)',
+                    lifeExample: 'Привычка существует',
+                    options: [
+                        { text: 'am used', correct: true },
+                        { text: 'used', correct: false },
+                        { text: 'use', correct: false },
+                        { text: 'was used', correct: false }
+                    ],
+                    explanation: 'be used to = привыкнуть (состояние)',
+                    hint: 'am/is/are used to',
+                    points: 20
+                }
+            ],
+            4: [ // Module 4: Technology
+                {
+                    id: 1,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'I ___ buy a new laptop tomorrow',
+                    context: 'Куплю ноутбук завтра',
+                    lifeExample: 'Запланированное действие',
+                    options: [
+                        { text: 'will', correct: true },
+                        { text: 'am', correct: false },
+                        { text: 'going', correct: false },
+                        { text: 'would', correct: false }
+                    ],
+                    explanation: 'will для решений и предсказаний',
+                    hint: 'Простое будущее',
+                    points: 10
+                },
+                {
+                    id: 2,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'I ___ going to upgrade my phone',
+                    context: 'Собираюсь обновить телефон (уже решил)',
+                    lifeExample: 'Запланированное намерение',
+                    options: [
+                        { text: 'am', correct: true },
+                        { text: 'will', correct: false },
+                        { text: 'was', correct: false },
+                        { text: 'have', correct: false }
+                    ],
+                    explanation: 'be going to для планов',
+                    hint: 'Конструкция be going to',
+                    points: 15
+                },
+                {
+                    id: 3,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'If I ___ (have) time, I will help you',
+                    context: 'Если будет время, помогу',
+                    lifeExample: 'Реальное условие в будущем',
+                    correctAnswers: ['have'],
+                    explanation: 'First Conditional: If + Present, will + V1',
+                    hint: 'Present Simple после if',
+                    points: 15
+                },
+                {
+                    id: 4,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'If I ___ a million dollars, I would travel',
+                    context: 'Если бы у меня был миллион (но его нет)',
+                    lifeExample: 'Нереальное условие',
+                    options: [
+                        { text: 'had', correct: true },
+                        { text: 'have', correct: false },
+                        { text: 'would have', correct: false },
+                        { text: 'will have', correct: false }
+                    ],
+                    explanation: 'Second Conditional: If + Past, would + V1',
+                    hint: 'Past после if',
+                    points: 20
+                },
+                {
+                    id: 5,
+                    type: 'multiple-choice',
+                    difficulty: 'easy',
+                    question: 'This app is very ___',
+                    context: 'Приложение простое в использовании',
+                    lifeExample: 'Описание технологии',
+                    options: [
+                        { text: 'user-friendly', correct: true },
+                        { text: 'user-friend', correct: false },
+                        { text: 'friendly-user', correct: false },
+                        { text: 'users-friendly', correct: false }
+                    ],
+                    explanation: 'user-friendly = удобный для пользователя',
+                    hint: 'Составное прилагательное',
+                    points: 10
+                },
+                {
+                    id: 6,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'By next year, I ___ (work) here for 10 years',
+                    context: 'К следующему году будет 10 лет работы',
+                    lifeExample: 'Длительность до момента в будущем',
+                    correctAnswers: ['will have worked', 'will have been working'],
+                    explanation: 'Future Perfect: will have + V3',
+                    hint: 'will have + третья форма',
+                    points: 20
+                },
+                {
+                    id: 7,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'The software ___ tomorrow at 10 am',
+                    context: 'Софт обновится завтра в 10 (расписание)',
+                    lifeExample: 'Запланированное событие',
+                    options: [
+                        { text: 'updates', correct: true },
+                        { text: 'will update', correct: false },
+                        { text: 'is updating', correct: false },
+                        { text: 'updated', correct: false }
+                    ],
+                    explanation: 'Present Simple для расписания',
+                    hint: 'Для расписаний',
+                    points: 15
+                },
+                {
+                    id: 8,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'I ___ my computer at 8 pm tomorrow',
+                    context: 'Буду чинить в определенный момент завтра',
+                    lifeExample: 'Процесс в будущем',
+                    options: [
+                        { text: 'will be fixing', correct: true },
+                        { text: 'will fix', correct: false },
+                        { text: 'fix', correct: false },
+                        { text: 'am fixing', correct: false }
+                    ],
+                    explanation: 'Future Continuous для процесса в будущем',
+                    hint: 'will be + V-ing',
+                    points: 15
+                },
+                {
+                    id: 9,
+                    type: 'input',
+                    difficulty: 'medium',
+                    question: 'Can you help me ___ up this device?',
+                    context: 'Помочь настроить устройство',
+                    lifeExample: 'Установка техники',
+                    correctAnswers: ['set'],
+                    explanation: 'set up = установить, настроить',
+                    hint: 'Phrasal verb для установки',
+                    points: 15
+                },
+                {
+                    id: 10,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'Unless you ___ now, you will be late',
+                    context: 'Если не уйдешь сейчас, опоздаешь',
+                    lifeExample: 'Условие с unless',
+                    options: [
+                        { text: 'leave', correct: true },
+                        { text: 'will leave', correct: false },
+                        { text: 'left', correct: false },
+                        { text: 'would leave', correct: false }
+                    ],
+                    explanation: 'Unless = if not, используется с Present',
+                    hint: 'Present Simple после unless',
+                    points: 20
+                },
+                {
+                    id: 11,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'My phone keeps ___ (freeze)',
+                    context: 'Телефон постоянно зависает',
+                    lifeExample: 'Проблема с устройством',
+                    correctAnswers: ['freezing'],
+                    explanation: 'keep + V-ing = продолжать делать',
+                    hint: 'keep + герундий',
+                    points: 20
+                },
+                {
+                    id: 12,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'I need to ___ my password',
+                    context: 'Нужно сбросить пароль',
+                    lifeExample: 'Проблема с доступом',
+                    options: [
+                        { text: 'reset', correct: true },
+                        { text: 'restart', correct: false },
+                        { text: 'refresh', correct: false },
+                        { text: 'reload', correct: false }
+                    ],
+                    explanation: 'reset = сбросить (пароль, настройки)',
+                    hint: 'Вернуть к начальным настройкам',
+                    points: 15
+                },
+                {
+                    id: 13,
+                    type: 'input',
+                    difficulty: 'hard',
+                    question: 'If I had bought that stock, I ___ (be) rich now',
+                    context: 'Если бы купил акции (но не купил)',
+                    lifeExample: 'Сожаление о прошлом решении',
+                    correctAnswers: ['would be'],
+                    explanation: 'Mixed Conditional: If + had + V3, would + V1',
+                    hint: 'would + V1',
+                    points: 20
+                },
+                {
+                    id: 14,
+                    type: 'multiple-choice',
+                    difficulty: 'medium',
+                    question: 'This device is powered ___ solar energy',
+                    context: 'Устройство работает на солнечной энергии',
+                    lifeExample: 'Источник питания',
+                    options: [
+                        { text: 'by', correct: true },
+                        { text: 'with', correct: false },
+                        { text: 'on', correct: false },
+                        { text: 'from', correct: false }
+                    ],
+                    explanation: 'powered by = работает на',
+                    hint: 'Предлог для источника энергии',
+                    points: 15
+                },
+                {
+                    id: 15,
+                    type: 'multiple-choice',
+                    difficulty: 'hard',
+                    question: 'Provided that you ___ early, we can go',
+                    context: 'При условии, что ты придешь рано',
+                    lifeExample: 'Формальное условие',
+                    options: [
+                        { text: 'arrive', correct: true },
+                        { text: 'will arrive', correct: false },
+                        { text: 'arrived', correct: false },
+                        { text: 'would arrive', correct: false }
+                    ],
+                    explanation: 'Provided that = при условии что (+ Present)',
+                    hint: 'Present Simple',
+                    points: 20
+                }
+            ]
+        };
 
         // State Management
         let currentScreen = 'main-menu';
@@ -869,6 +1830,7 @@
         let correctAnswers = 0;
         let streak = 0;
         let hintsUsed = 0;
+        let currentQuizData = [];
 
         // Load progress from localStorage
         function loadProgress() {
@@ -882,7 +1844,9 @@
                     completed: false,
                     score: 0,
                     percentage: 0,
-                    questionsAnswered: 0
+                    questionsAnswered: 0,
+                    attempts: 0,
+                    bestScore: 0
                 }))
             };
         }
@@ -894,11 +1858,13 @@
             Object.assign(moduleProgress, data);
             localStorage.setItem('learnYourWayProgress', JSON.stringify(progress));
             updateMainMenu();
+            updateProgressScreen();
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             updateMainMenu();
+            updateProgressScreen();
         });
 
         // Update Main Menu
@@ -956,11 +1922,60 @@
             }).join('');
         }
 
+        // Update Progress Screen
+        function updateProgressScreen() {
+            const progress = loadProgress();
+            const achievementsList = document.getElementById('achievementsList');
+            const moduleStatsList = document.getElementById('moduleStatsList');
+
+            // Achievements
+            let achievements = [];
+            const totalCompleted = progress.modules.filter(m => m.completed).length;
+            const avgPercentage = Math.round(progress.modules.reduce((sum, m) => sum + (m.percentage || 0), 0) / progress.modules.length);
+
+            if (totalCompleted === 0) {
+                achievements.push('🚀 Начни своё путешествие!');
+            }
+            if (totalCompleted >= 1) achievements.push('🎯 Первый модуль пройден!');
+            if (totalCompleted >= 2) achievements.push('⭐ Половина пути!');
+            if (totalCompleted === 4) achievements.push('🏆 Все модули завершены!');
+            if (avgPercentage >= 90) achievements.push('💯 Мастер английского!');
+            if (avgPercentage >= 70) achievements.push('🌟 Отличник!');
+
+            achievementsList.innerHTML = achievements.map(a => 
+                `<div class="achievement-badge">${a}</div>`
+            ).join('');
+
+            // Module stats
+            moduleStatsList.innerHTML = modules.map(module => {
+                const mp = progress.modules.find(m => m.id === module.id);
+                return `
+                    <div class="module-progress-item">
+                        <h4>${module.title}</h4>
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                            ${mp.completed ? '✅ Завершен' : mp.questionsAnswered > 0 ? `🔄 В процессе (${mp.questionsAnswered}/${module.totalQuestions})` : '⏳ Не начат'}
+                        </div>
+                        <div class="progress-bar-small">
+                            <div class="progress-bar-small-fill" style="width: ${mp.percentage || 0}%"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #999; margin-top: 0.5rem;">
+                            <span>Очки: ${mp.score || 0}</span>
+                            <span>Результат: ${mp.percentage || 0}%</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         // Show Screen
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             currentScreen = screenId;
+
+            if (screenId === 'progress-screen') {
+                updateProgressScreen();
+            }
         }
 
         // Start Module
@@ -977,6 +1992,7 @@
             correctAnswers = 0;
             streak = 0;
             hintsUsed = 0;
+            currentQuizData = quizData[moduleId];
             
             showScreen('quiz-screen');
             showQuestion(0);
@@ -984,12 +2000,12 @@
 
         // Show Question
         function showQuestion(index) {
-            const question = quizDataModule1[index];
+            const question = currentQuizData[index];
             const quizCard = document.getElementById('quizCard');
             
             let questionHTML = `
                 <div class="question-header">
-                    <span class="question-number">Вопрос ${index + 1} из ${quizDataModule1.length}</span>
+                    <span class="question-number">Вопрос ${index + 1} из ${currentQuizData.length}</span>
                     <span class="difficulty-badge difficulty-${question.difficulty}">
                         ${question.difficulty === 'easy' ? 'Лёгкий' : question.difficulty === 'medium' ? 'Средний' : 'Сложный'}
                     </span>
@@ -1059,7 +2075,7 @@
 
         // Check Answer
         function checkAnswer() {
-            const question = quizDataModule1[currentQuestionIndex];
+            const question = currentQuizData[currentQuestionIndex];
             const feedback = document.getElementById('feedback');
             const checkBtn = document.getElementById('checkBtn');
             let isCorrect = false;
@@ -1127,7 +2143,7 @@
             updateStats();
 
             // Change button
-            checkBtn.textContent = currentQuestionIndex === quizDataModule1.length - 1 ? '🏁 Завершить' : 'Следующий вопрос →';
+            checkBtn.textContent = currentQuestionIndex === currentQuizData.length - 1 ? '🏁 Завершить' : 'Следующий вопрос →';
             checkBtn.onclick = nextQuestion;
         }
 
@@ -1135,7 +2151,7 @@
         function nextQuestion() {
             currentQuestionIndex++;
             
-            if (currentQuestionIndex < quizDataModule1.length) {
+            if (currentQuestionIndex < currentQuizData.length) {
                 showQuestion(currentQuestionIndex);
             } else {
                 showResults();
@@ -1144,33 +2160,37 @@
 
         // Update Stats
         function updateStats() {
-            document.getElementById('questionNumber').textContent = `${currentQuestionIndex + 1}/${quizDataModule1.length}`;
+            document.getElementById('questionNumber').textContent = `${currentQuestionIndex + 1}/${currentQuizData.length}`;
             document.getElementById('pointsDisplay').textContent = score;
             document.getElementById('correctCount').textContent = correctAnswers;
             document.getElementById('streakDisplay').textContent = streak;
             
-            const progress = ((currentQuestionIndex + 1) / quizDataModule1.length) * 100;
+            const progress = ((currentQuestionIndex + 1) / currentQuizData.length) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
             document.getElementById('progressText').textContent = Math.round(progress) + '%';
         }
 
         // Show Results
         function showResults() {
-            const percentage = Math.round((correctAnswers / quizDataModule1.length) * 100);
+            const percentage = Math.round((correctAnswers / currentQuizData.length) * 100);
             
             // Save progress
+            const progress = loadProgress();
+            const moduleProgress = progress.modules.find(m => m.id === currentModuleId);
+            const isFirstComplete = !moduleProgress.completed;
+            
             saveProgress(currentModuleId, {
                 completed: true,
                 score: score,
                 percentage: percentage,
-                questionsAnswered: quizDataModule1.length
+                questionsAnswered: currentQuizData.length,
+                attempts: (moduleProgress.attempts || 0) + 1,
+                bestScore: Math.max(moduleProgress.bestScore || 0, percentage)
             });
             
             // Unlock next module
-            const progress = loadProgress();
             const currentIndex = modules.findIndex(m => m.id === currentModuleId);
-            if (currentIndex < modules.length - 1) {
-                const nextModule = progress.modules.find(m => m.id === modules[currentIndex + 1].id);
+            if (currentIndex < modules.length - 1 && isFirstComplete) {
                 modules[currentIndex + 1].unlocked = true;
             }
 
@@ -1192,7 +2212,7 @@
                     <div style="background: #f5f5f5; padding: 2rem; border-radius: 15px; margin: 2rem 0; text-align: left;">
                         <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 2px solid #e0e0e0;">
                             <span><strong>Правильных ответов:</strong></span>
-                            <span>${correctAnswers} из ${quizDataModule1.length}</span>
+                            <span>${correctAnswers} из ${currentQuizData.length}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 2px solid #e0e0e0;">
                             <span><strong>Набрано очков:</strong></span>
@@ -1223,15 +2243,9 @@
                     alert('Следующий модуль ещё не разблокирован!');
                 }
             } else {
-                alert('🎉 Поздравляем! Ты прошёл все доступные модули!');
+                alert('🎉 Поздравляем! Ты прошёл все модули!');
                 showScreen('main-menu');
             }
-        }
-
-        // Show Progress
-        function showProgress() {
-            const progress = loadProgress();
-            alert('📊 Детальная статистика в разработке!\n\nТвой прогресс сохранён и отображается на главном экране.');
         }
 
         // Reset Progress
