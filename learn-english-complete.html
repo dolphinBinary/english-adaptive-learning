@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn Your Way | Полный курс английского</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2D4356;
+            --accent: #FF6B35;
+            --secondary: #F7B32B;
+            --success: #4CAF50;
+            --error: #f44336;
+            --info: #2196F3;
+            --light: #F8F5F1;
+            --dark: #1A1A1A;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem 3rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--primary);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .logo:hover {
+            color: var(--accent);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .nav-btn:hover {
+            background: var(--light);
+            color: var(--accent);
+        }
+
+        .nav-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Main Menu Screen */
+        .main-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .main-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .main-header p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+        }
+
+        /* Progress Overview */
+        .progress-overview {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+        }
+
+        .stat-box .number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-box .label {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        /* Module Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .module-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        .module-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .module-card.locked:hover {
+            transform: none;
+        }
+
+        .module-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+        }
+
+        .module-card:nth-child(2) .module-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .module-card:nth-child(3) .module-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .module-card:nth-child(4) .module-header {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .module-number {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+        }
+
+        .module-body {
+            padding: 2rem;
+        }
+
+        .module-topics {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .module-topics li {
+            padding: 0.5rem 0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .module-topics li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .module-progress {
+            margin-top: 1.5rem;
+        }
+
+        .module-progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .module-progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .module-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, var(--secondary) 100%);
+            transition: width 0.5s ease;
+        }
+
+        .module-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e85a2a;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Quiz Screen Styles */
+        .quiz-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .quiz-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .quiz-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar-container {
+            background: rgba(255,255,255,0.2);
+            border-radius: 50px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--success) 0%, var(--secondary) 100%);
+            height: 30px;
+            border-radius: 50px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .quiz-card {
+            background: white;
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--secondary) 100%);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .question-number {
+            font-size: 1.1rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .difficulty-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .difficulty-easy { background: #e8f5e9; color: var(--success); }
+        .difficulty-medium { background: #fff3e0; color: #ff9800; }
+        .difficulty-hard { background: #ffebee; color: var(--error); }
+
+        .question-content {
+            margin-bottom: 2.5rem;
+        }
+
+        .question-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .question-context {
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--info);
+            font-style: italic;
+            color: #555;
+        }
+
+        .life-example {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe8cc 100%);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: var(--info);
+            background: #e3f2fd;
+        }
+
+        .option.correct {
+            border-color: var(--success);
+            background: #e8f5e9;
+        }
+
+        .option.incorrect {
+            border-color: var(--error);
+            background: #ffebee;
+        }
+
+        .option-letter {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            margin-right: 1rem;
+            font-weight: 600;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .feedback {
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #e8f5e9;
+            border-left: 5px solid var(--success);
+        }
+
+        .feedback.incorrect {
+            background: #ffebee;
+            border-left: 5px solid var(--error);
+        }
+
+        .hint-box {
+            background: #fff3e0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            border-left: 5px solid #ff9800;
+            display: none;
+        }
+
+        .hint-box.show {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .results-screen {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 25px;
+        }
+
+        .score-display {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin: 2rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .main-header h1 {
+                font-size: 2rem;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .quiz-card {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="logo" onclick="showScreen('main-menu')">Learn Your Way</div>
+        <div class="nav-menu">
+            <button class="nav-btn" onclick="showScreen('main-menu')">📚 Все модули</button>
+            <button class="nav-btn" onclick="showProgress()">📊 Прогресс</button>
+            <button class="nav-btn" onclick="resetProgress()">🔄 Сброс</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Main Menu Screen -->
+        <div class="screen active" id="main-menu">
+            <div class="main-header">
+                <h1>🎓 Upstream Upper Intermediate B2</h1>
+                <p>Полный курс английского языка с интерактивными тестами</p>
+            </div>
+
+            <div class="progress-overview">
+                <h2 style="color: var(--primary); margin-bottom: 1rem;">📊 Твой общий прогресс</h2>
+                <div class="progress-stats">
+                    <div class="stat-box">
+                        <div class="number" id="totalProgress">0%</div>
+                        <div class="label">Завершено</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="modulesCompleted">0/4</div>
+                        <div class="label">Модулей пройдено</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="totalScore">0</div>
+                        <div class="label">Всего очков</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="avgScore">0%</div>
+                        <div class="label">Средний результат</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modules-grid" id="modulesGrid">
+                <!-- Modules will be dynamically inserted -->
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="screen" id="quiz-screen">
+            <div class="quiz-container">
+                <div class="quiz-header">
+                    <h2 id="currentModuleTitle">Module Title</h2>
+                    <p id="currentModuleSubtitle">Module Subtitle</p>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar" style="width: 0%">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat-card">
+                        <div class="icon">🎯</div>
+                        <div class="value" id="questionNumber">1/15</div>
+                        <div class="label">Вопрос</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">⭐</div>
+                        <div class="value" id="pointsDisplay">0</div>
+                        <div class="label">Очки</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">✅</div>
+                        <div class="value" id="correctCount">0</div>
+                        <div class="label">Верно</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="icon">🔥</div>
+                        <div class="value" id="streakDisplay">0</div>
+                        <div class="label">Серия</div>
+                    </div>
+                </div>
+
+                <div class="quiz-card" id="quizCard">
+                    <!-- Questions will be dynamically inserted -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Module Data
+        const modules = [
+            {
+                id: 1,
+                number: 'Module 1',
+                title: 'Crossing Barriers',
+                subtitle: 'Коммуникация и языки',
+                topics: [
+                    'Способы коммуникации',
+                    'Phrasal Verbs',
+                    'Артикли (a/an/the)',
+                    'Expressing preferences',
+                    'Multilingual Internet'
+                ],
+                totalQuestions: 15,
+                unlocked: true
+            },
+            {
+                id: 2,
+                number: 'Module 2',
+                title: 'Material World',
+                subtitle: 'Вещи и покупки',
+                topics: [
+                    'Shopping vocabulary',
+                    'Adjectives для описания',
+                    'Present Perfect',
+                    'Comparisons',
+                    'Consumer society'
+                ],
+                totalQuestions: 15,
+                unlocked: false
+            },
+            {
+                id: 3,
+                number: 'Module 3',
+                title: 'Getting Around',
+                subtitle: 'Путешествия и транспорт',
+                topics: [
+                    'Travel vocabulary',
+                    'Past tenses',
+                    'Used to / Would',
+                    'Describing places',
+                    'Travel experiences'
+                ],
+                totalQuestions: 15,
+                unlocked: false
+            },
+            {
+                id: 4,
+                number: 'Module 4',
+                title: 'Technology',
+                subtitle: 'Технологии и инновации',
+                topics: [
+                    'Tech vocabulary',
+                    'Future forms',
+                    'Conditionals',
+                    'Gadgets and devices',
+                    'Digital life'
+                ],
+                totalQuestions: 15,
+                unlocked: false
+            }
+        ];
+
+        // Quiz Data for Module 1
+        const quizDataModule1 = [
+            {
+                id: 1,
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: 'Как ты обычно общаешься с друзьями?',
+                context: 'Представь: твой друг хочет узнать, как лучше с тобой связаться.',
+                lifeExample: 'Например, ты можешь сказать: Мне удобнее писать в мессенджере, чем звонить',
+                options: [
+                    { text: 'I usually text on WhatsApp', correct: true },
+                    { text: 'I usually texting on WhatsApp', correct: false },
+                    { text: 'I am usually text on WhatsApp', correct: false },
+                    { text: 'I usually to text on WhatsApp', correct: false }
+                ],
+                explanation: 'После usually используется обычная форма глагола (V1): I usually + VERB. НЕ texting, НЕ to text.',
+                hint: 'Вспомни правило: usually + простой глагол (без -ing, без to)',
+                points: 10
+            },
+            {
+                id: 2,
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: 'Выбери правильный способ описания коммуникации:',
+                context: 'Тебе нужно объяснить, почему ты предпочитаешь один способ связи другому.',
+                lifeExample: 'Как в жизни: Я предпочитаю звонить, потому что это быстрее',
+                options: [
+                    { text: 'I&apos;d rather call than text', correct: true },
+                    { text: 'I&apos;d rather to call than text', correct: false },
+                    { text: 'I&apos;d rather calling than texting', correct: false },
+                    { text: 'I rather call than text', correct: false }
+                ],
+                explanation: 'Конструкция would rather используется так: would rather + V1 + than + V1. Обе формы глагола простые!',
+                hint: 'Would rather + простой глагол (без to, без -ing)',
+                points: 10
+            },
+            {
+                id: 3,
+                type: 'input',
+                difficulty: 'medium',
+                question: 'Заполни пропуск правильным phrasal verb:',
+                context: 'The meeting was _____ because the manager was sick.',
+                lifeExample: 'Представь: встречу отменили из-за болезни начальника',
+                correctAnswers: ['called off', 'cancelled'],
+                explanation: 'Phrasal verb call off означает отменить (встречу, мероприятие). Синоним: cancel.',
+                hint: 'Подумай о фразовом глаголе со словом call (отменить)',
+                points: 15
+            },
+            {
+                id: 4,
+                type: 'multiple-choice',
+                difficulty: 'medium',
+                question: 'Какой артикль нужен в предложении?',
+                context: 'I saw ___ cat in the garden. ___ cat was black.',
+                lifeExample: 'Первый раз говоришь о чём-то → a/an. Второй раз (уже известно) → the',
+                options: [
+                    { text: 'a / The', correct: true },
+                    { text: 'the / The', correct: false },
+                    { text: 'a / A', correct: false },
+                    { text: '- / The', correct: false }
+                ],
+                explanation: 'Правило артиклей: первое упоминание → a или an (какой-то кот), повторное упоминание → the (тот самый кот).',
+                hint: 'Первый раз = новая информация (a/an), второй раз = уже знакомая (the)',
+                points: 15
+            },
+            {
+                id: 5,
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: 'Как сказать Я не согласен вежливо?',
+                context: 'Твой коллега предложил идею, но ты не согласен. Как ответить вежливо?',
+                lifeExample: 'В работе важно не соглашаться культурно',
+                options: [
+                    { text: 'I don&apos;t think I agree', correct: true },
+                    { text: 'You are wrong', correct: false },
+                    { text: 'That&apos;s stupid', correct: false },
+                    { text: 'No way', correct: false }
+                ],
+                explanation: 'Вежливая форма несогласия: I don&apos;t think I agree. Фраза You are wrong звучит грубо!',
+                hint: 'Ищи самый вежливый вариант с I think',
+                points: 10
+            }
+        ];
+
+        // State Management
+        let currentScreen = 'main-menu';
+        let currentModuleId = null;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let correctAnswers = 0;
+        let streak = 0;
+        let hintsUsed = 0;
+
+        // Load progress from localStorage
+        function loadProgress() {
+            const saved = localStorage.getItem('learnYourWayProgress');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return {
+                modules: modules.map(m => ({
+                    id: m.id,
+                    completed: false,
+                    score: 0,
+                    percentage: 0,
+                    questionsAnswered: 0
+                }))
+            };
+        }
+
+        // Save progress
+        function saveProgress(moduleId, data) {
+            const progress = loadProgress();
+            const moduleProgress = progress.modules.find(m => m.id === moduleId);
+            Object.assign(moduleProgress, data);
+            localStorage.setItem('learnYourWayProgress', JSON.stringify(progress));
+            updateMainMenu();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateMainMenu();
+        });
+
+        // Update Main Menu
+        function updateMainMenu() {
+            const progress = loadProgress();
+            const modulesGrid = document.getElementById('modulesGrid');
+            
+            // Calculate overall stats
+            const completed = progress.modules.filter(m => m.completed).length;
+            const totalScore = progress.modules.reduce((sum, m) => sum + (m.score || 0), 0);
+            const avgPercentage = progress.modules.length > 0 
+                ? Math.round(progress.modules.reduce((sum, m) => sum + (m.percentage || 0), 0) / progress.modules.length)
+                : 0;
+            
+            document.getElementById('totalProgress').textContent = avgPercentage + '%';
+            document.getElementById('modulesCompleted').textContent = completed + '/' + modules.length;
+            document.getElementById('totalScore').textContent = totalScore;
+            document.getElementById('avgScore').textContent = avgPercentage + '%';
+
+            // Render modules
+            modulesGrid.innerHTML = modules.map((module, index) => {
+                const moduleProgress = progress.modules.find(m => m.id === module.id);
+                const isUnlocked = module.unlocked || (index > 0 && progress.modules[index - 1].completed);
+                const progressPercent = moduleProgress.percentage || 0;
+                
+                return `
+                    <div class="module-card ${!isUnlocked ? 'locked' : ''}" onclick="${isUnlocked ? `startModule(${module.id})` : ''}">
+                        <div class="module-header">
+                            ${!isUnlocked ? '<div class="lock-icon">🔒</div>' : ''}
+                            <div class="module-number">${module.number}</div>
+                            <div class="module-title">${module.title}</div>
+                            <div class="module-subtitle">${module.subtitle}</div>
+                        </div>
+                        <div class="module-body">
+                            <ul class="module-topics">
+                                ${module.topics.map(topic => `<li>${topic}</li>`).join('')}
+                            </ul>
+                            <div class="module-progress">
+                                <div class="module-progress-label">
+                                    <span>Прогресс</span>
+                                    <span>${progressPercent}%</span>
+                                </div>
+                                <div class="module-progress-bar">
+                                    <div class="module-progress-fill" style="width: ${progressPercent}%"></div>
+                                </div>
+                            </div>
+                            <div class="module-actions">
+                                <button class="btn btn-primary" onclick="event.stopPropagation(); startModule(${module.id})" ${!isUnlocked ? 'disabled' : ''}>
+                                    ${moduleProgress.completed ? '🔄 Пройти заново' : '▶️ Начать'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Show Screen
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+        }
+
+        // Start Module
+        function startModule(moduleId) {
+            currentModuleId = moduleId;
+            const module = modules.find(m => m.id === moduleId);
+            
+            document.getElementById('currentModuleTitle').textContent = module.title;
+            document.getElementById('currentModuleSubtitle').textContent = module.subtitle;
+            
+            // Reset quiz state
+            currentQuestionIndex = 0;
+            score = 0;
+            correctAnswers = 0;
+            streak = 0;
+            hintsUsed = 0;
+            
+            showScreen('quiz-screen');
+            showQuestion(0);
+        }
+
+        // Show Question
+        function showQuestion(index) {
+            const question = quizDataModule1[index];
+            const quizCard = document.getElementById('quizCard');
+            
+            let questionHTML = `
+                <div class="question-header">
+                    <span class="question-number">Вопрос ${index + 1} из ${quizDataModule1.length}</span>
+                    <span class="difficulty-badge difficulty-${question.difficulty}">
+                        ${question.difficulty === 'easy' ? 'Лёгкий' : question.difficulty === 'medium' ? 'Средний' : 'Сложный'}
+                    </span>
+                </div>
+                
+                <div class="question-content">
+                    <div class="question-title">${question.question}</div>
+                    ${question.context ? `<div class="question-context">📖 ${question.context}</div>` : ''}
+                    ${question.lifeExample ? `<div class="life-example"><strong>💡 Пример из жизни:</strong> ${question.lifeExample}</div>` : ''}
+            `;
+
+            if (question.type === 'multiple-choice') {
+                questionHTML += `<div class="options-container">`;
+                question.options.forEach((option, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    questionHTML += `
+                        <div class="option" onclick="selectOption(${i})">
+                            <span class="option-letter">${letter}</span>
+                            <span>${option.text}</span>
+                        </div>
+                    `;
+                });
+                questionHTML += `</div>`;
+            } else if (question.type === 'input') {
+                questionHTML += `
+                    <input type="text" class="input-field" id="userInput" placeholder="Введи свой ответ...">
+                `;
+            }
+
+            questionHTML += `</div>`;
+            questionHTML += `
+                <div class="hint-box" id="hintBox">
+                    <strong>💡 Подсказка:</strong>
+                    <p>${question.hint}</p>
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="showHint()">💡 Подсказка</button>
+                    <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()">Проверить ответ</button>
+                </div>
+            `;
+
+            quizCard.innerHTML = questionHTML;
+            updateStats();
+        }
+
+        // Select Option
+        function selectOption(index) {
+            document.querySelectorAll('.option').forEach((opt, i) => {
+                opt.classList.remove('selected');
+                if (i === index) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+
+        // Show Hint
+        function showHint() {
+            const hintBox = document.getElementById('hintBox');
+            hintBox.classList.toggle('show');
+            if (hintBox.classList.contains('show')) {
+                hintsUsed++;
+            }
+        }
+
+        // Check Answer
+        function checkAnswer() {
+            const question = quizDataModule1[currentQuestionIndex];
+            const feedback = document.getElementById('feedback');
+            const checkBtn = document.getElementById('checkBtn');
+            let isCorrect = false;
+
+            if (question.type === 'multiple-choice') {
+                const selectedOption = document.querySelector('.option.selected');
+                if (!selectedOption) {
+                    alert('Выбери ответ!');
+                    return;
+                }
+                
+                const selectedIndex = Array.from(document.querySelectorAll('.option')).indexOf(selectedOption);
+                isCorrect = question.options[selectedIndex].correct;
+
+                document.querySelectorAll('.option').forEach((opt, i) => {
+                    if (question.options[i].correct) {
+                        opt.classList.add('correct');
+                    } else if (i === selectedIndex && !isCorrect) {
+                        opt.classList.add('incorrect');
+                    }
+                });
+            } else if (question.type === 'input') {
+                const userInput = document.getElementById('userInput').value.trim().toLowerCase();
+                if (!userInput) {
+                    alert('Введи ответ!');
+                    return;
+                }
+                
+                isCorrect = question.correctAnswers.some(ans => 
+                    userInput === ans.toLowerCase() || 
+                    userInput.includes(ans.toLowerCase())
+                );
+
+                const inputField = document.getElementById('userInput');
+                inputField.classList.add(isCorrect ? 'correct' : 'incorrect');
+                inputField.disabled = true;
+            }
+
+            // Show feedback
+            feedback.className = 'feedback show ' + (isCorrect ? 'correct' : 'incorrect');
+            feedback.innerHTML = `
+                <div style="font-weight: 700; font-size: 1.2rem; margin-bottom: 0.5rem;">
+                    ${isCorrect ? '✅ Правильно!' : '❌ Неправильно'}
+                </div>
+                <div style="color: #555; line-height: 1.6;">
+                    ${isCorrect ? 'Отличная работа!' : 'Не расстраивайся, продолжай учиться!'}
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                    <strong style="color: var(--primary); display: block; margin-bottom: 0.5rem;">📚 Объяснение:</strong>
+                    ${question.explanation}
+                </div>
+            `;
+
+            // Update score
+            if (isCorrect) {
+                const points = hintsUsed > 0 ? Math.floor(question.points * 0.7) : question.points;
+                score += points;
+                correctAnswers++;
+                streak++;
+            } else {
+                streak = 0;
+            }
+
+            hintsUsed = 0;
+            updateStats();
+
+            // Change button
+            checkBtn.textContent = currentQuestionIndex === quizDataModule1.length - 1 ? '🏁 Завершить' : 'Следующий вопрос →';
+            checkBtn.onclick = nextQuestion;
+        }
+
+        // Next Question
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < quizDataModule1.length) {
+                showQuestion(currentQuestionIndex);
+            } else {
+                showResults();
+            }
+        }
+
+        // Update Stats
+        function updateStats() {
+            document.getElementById('questionNumber').textContent = `${currentQuestionIndex + 1}/${quizDataModule1.length}`;
+            document.getElementById('pointsDisplay').textContent = score;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('streakDisplay').textContent = streak;
+            
+            const progress = ((currentQuestionIndex + 1) / quizDataModule1.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = Math.round(progress) + '%';
+        }
+
+        // Show Results
+        function showResults() {
+            const percentage = Math.round((correctAnswers / quizDataModule1.length) * 100);
+            
+            // Save progress
+            saveProgress(currentModuleId, {
+                completed: true,
+                score: score,
+                percentage: percentage,
+                questionsAnswered: quizDataModule1.length
+            });
+            
+            // Unlock next module
+            const progress = loadProgress();
+            const currentIndex = modules.findIndex(m => m.id === currentModuleId);
+            if (currentIndex < modules.length - 1) {
+                const nextModule = progress.modules.find(m => m.id === modules[currentIndex + 1].id);
+                modules[currentIndex + 1].unlocked = true;
+            }
+
+            let achievement = '';
+            if (percentage >= 90) achievement = '🏆 Мастер английского!';
+            else if (percentage >= 70) achievement = '🌟 Отличная работа!';
+            else if (percentage >= 50) achievement = '👍 Хороший результат!';
+            else achievement = '💪 Продолжай практиковаться!';
+
+            const quizCard = document.getElementById('quizCard');
+            quizCard.innerHTML = `
+                <div class="results-screen">
+                    <h2 style="font-family: 'Playfair Display', serif; color: var(--primary);">🎉 Модуль завершён!</h2>
+                    <div class="score-display">${percentage}%</div>
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1rem 2rem; border-radius: 50px; display: inline-block; font-weight: 600; margin-bottom: 2rem;">
+                        ${achievement}
+                    </div>
+                    
+                    <div style="background: #f5f5f5; padding: 2rem; border-radius: 15px; margin: 2rem 0; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 2px solid #e0e0e0;">
+                            <span><strong>Правильных ответов:</strong></span>
+                            <span>${correctAnswers} из ${quizDataModule1.length}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 2px solid #e0e0e0;">
+                            <span><strong>Набрано очков:</strong></span>
+                            <span>${score}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 1rem 0;">
+                            <span><strong>Процент успеха:</strong></span>
+                            <span>${percentage}%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-secondary" onclick="showScreen('main-menu')">📚 Все модули</button>
+                        <button class="btn btn-primary" onclick="startNextModule()">Следующий модуль →</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Start Next Module
+        function startNextModule() {
+            const currentIndex = modules.findIndex(m => m.id === currentModuleId);
+            if (currentIndex < modules.length - 1) {
+                const nextModule = modules[currentIndex + 1];
+                if (nextModule.unlocked) {
+                    startModule(nextModule.id);
+                } else {
+                    alert('Следующий модуль ещё не разблокирован!');
+                }
+            } else {
+                alert('🎉 Поздравляем! Ты прошёл все доступные модули!');
+                showScreen('main-menu');
+            }
+        }
+
+        // Show Progress
+        function showProgress() {
+            const progress = loadProgress();
+            alert('📊 Детальная статистика в разработке!\n\nТвой прогресс сохранён и отображается на главном экране.');
+        }
+
+        // Reset Progress
+        function resetProgress() {
+            if (confirm('Ты уверен? Весь прогресс будет удалён!')) {
+                localStorage.removeItem('learnYourWayProgress');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
